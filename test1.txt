@@ -1,6 +1,5 @@
 test file with update
-<<<<<<< HEAD
 update from github (from local)
-=======
->>>>>>> cafb943ddff336d2b9689e9d7d1f3985b5f96043
 update from github - with another thing
+another line from github
+another line from local

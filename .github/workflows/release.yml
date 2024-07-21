@@ -1,0 +1,60 @@
+name: GH Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    # The GITHUB_TOKEN secret is set to an access token for the repository each time a job in a workflow begins.
+    # You should set the permissions for this access token in the workflow file to grant
+    # read access for the contents scope and write access for the packages scope.
+    permissions:
+      contents: write
+      packages: write
+      pull-requests: write
+      checks: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 0 indicates all history for all branches and tags
+          fetch-depth: "0"
+
+      - name: create build asset
+        run: |
+          mkdir -p build/libs
+          date >> build/date.txt
+          zip build/libs/asset.jar build/*.txt
+
+      - name: get latest tag
+        id: get_latest_tag
+        run: |
+          tag=$(git describe --abbrev=0 --tags)
+          echo "latest tag: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: create release
+        id: create_release
+#        if: github.event_name == 'push'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ steps.get_latest_tag.outputs.tag }}
+          release_name: ${{ steps.get_latest_tag.outputs.tag }}
+          draft: false
+          prerelease: true
+
+      - name: upload release asset
+        id: upload-release-asset
+#        if: github.event_name == 'push'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/libs/asset.jar
+          asset_name: asset.jar
+          asset_content_type: application/zip

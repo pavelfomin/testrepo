@@ -38,23 +38,11 @@ jobs:
       - name: create release
         id: create_release
 #        if: github.event_name == 'push'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.get_latest_tag.outputs.tag }}
           tag_name: ${{ steps.get_latest_tag.outputs.tag }}
-          release_name: ${{ steps.get_latest_tag.outputs.tag }}
           draft: false
           prerelease: true
-
-      - name: upload release asset
-        id: upload-release-asset
-#        if: github.event_name == 'push'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/libs/asset.jar
-          asset_name: asset.jar
-          asset_content_type: application/zip
+          files: |
+            build/libs/*jar
